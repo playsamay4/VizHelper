@@ -1,2 +1,4 @@
 build.cmd
 version.txt
+makelove-build/*
+makelove.toml
