@@ -3,14 +3,10 @@ local wires = {}
 --local showWires = ffi.new("bool[1]", false)
 
 local gathering = true
---local inspect = require "lib.inspect"
-
-
-local lastUpdated = "Never"
 
 local BBCWorldSCR = [[
-    local xml2lua = require("xml2lua")
-    local handler = require("xmlhandler.tree")
+    local xml2lua = require("lib.xml2lua")
+    local handler = require("lib.xmlhandler.tree")
     local wireGatherChannel = love.thread.getChannel("wireGatherChannel")
     local socket = require("socket.http")
     local parser = xml2lua.parser(handler)
@@ -35,8 +31,8 @@ local BBCWorldSCR = [[
 ]]
 
 local BBCUKSCR = [[
-    local xml2lua = require("xml2lua")
-    local handler = require("xmlhandler.tree")
+    local xml2lua = require("lib.xml2lua")
+    local handler = require("lib.xmlhandler.tree")
     local wireGatherChannel = love.thread.getChannel("wireGatherChannel")
     local socket = require("socket.http")
     local parser = xml2lua.parser(handler)
@@ -62,9 +58,7 @@ local BBCUKSCR = [[
 
 wires.wireData = {}
 
-
-
-local BBCWorldThread = love.thread.newThread(BBCWorldSCR)
+--local BBCWorldThread = love.thread.newThread(BBCWorldSCR)
 --BBCWorldThread:start()
 
 local BBCUKThread = love.thread.newThread(BBCUKSCR)
@@ -75,14 +69,11 @@ lastUpdated = os.date("%c")
 
 
 function wires.Update(dt)
-    --if gathering then
         local wireGatherChannel = love.thread.getChannel("wireGatherChannel")
         local wireGatherData = wireGatherChannel:pop()
         if wireGatherData then
             
             gathering = false
-            --print(inspect(wires.wireDataTest))
-            --print(wireGatherData[1].title)
             local data = wireGatherChannel:pop()
 
             if data == nil then return end
@@ -93,7 +84,6 @@ function wires.Update(dt)
             end
 
         end
-    --end
 end
 
 return wires
