@@ -46,21 +46,13 @@ imgui = require "cimgui" -- cimgui is the folder containing the Lua module (the 
 AstonControl = require "modules.aston_control"
 TickerControl = require "modules.ticker_control"
 BrandingControl = require "modules.branding_control"
+HeadlineControl = require "modules.headline_control"
 
 local showTileCon = ffi.new("bool[1]", false)
-local showHeadlineCon = ffi.new("bool[1]", false)
 local showLiveCon = ffi.new("bool[1]", false)
 local showPlayoutCon = ffi.new("bool[1]", false)
-local showBrandingCon = ffi.new("bool[1]", false)
 local showAutomationCon = ffi.new("bool[1]", false)
 
-local stylePicker = ffi.new("int[1]", 0)
-
-local headlineStrap1 = ffi.new("char[1024]", "")
-local headlineStrap2 = ffi.new("char[1024]", "")
-local headlineStrapComingUp = ffi.new("bool[1]", false)
-local headlineStrapnoBBC = ffi.new("bool[1]", false)
-local shitViz = ffi.new("bool[1]", false)
 
 local liveBugText = ffi.new("char[1024]", "")
 local liveBugLive = ffi.new("bool[1]", true)
@@ -347,7 +339,7 @@ function love.draw()
 
 
             if imgui.Button("Headline\nControl", imgui.ImVec2_Float(100, 100)) then
-                showHeadlineCon[0] = true
+                HeadlineControl.show()
             end
             imgui.SameLine()
             if imgui.Button("Tile Control", imgui.ImVec2_Float(100, 100)) then
@@ -469,66 +461,8 @@ function love.draw()
             AstonControl.draw()
         end
 
-        if showHeadlineCon[0] == true then
-            imgui.Begin("Headline Control", showHeadlineCon, imgui.love.WindowFlags("NoSavedSettings", "NoResize"))
-                imgui.SetWindowSize_Vec2(imgui.ImVec2_Float(800,400))
-                
-                imgui.Text("Control headline straps")
-
-                --Drop down
-                imgui.Separator()
-                imgui.Separator()
-
-                imgui.PushFont(TimingsFont)
-                imgui.Text("Headline Strap")
-                imgui.PopFont()
-                imgui.Text("Text to appear on the top line") imgui.SameLine()
-                imgui.InputText("###headlineStrap1", headlineStrap1, 1024)
-                imgui.Text("Text to appear on the bottom line, leave empty for single line strap") imgui.SameLine()
-                imgui.InputText("###headlineStrap2", headlineStrap2, 1024)
-
-                imgui.Text("Coming Up badge") imgui.SameLine()
-                imgui.Checkbox("###headlineStrapComing", headlineStrapComingUp)
-
-                imgui.Text("No BBC NEWS box")
-                imgui.SameLine()
-                imgui.Checkbox("###headlineStrapBBC", headlineStrapnoBBC)
-
-                imgui.Text("Look North Viz Style")
-                imgui.SameLine()
-                imgui.Checkbox("###lookNorthViz", shitViz)
-                imgui.SameLine()
-                imgui.Text("(one line straps only)")
-
-
-                if imgui.Button("Show Strap") then
-                    local style = ""
-                    if headlineStrapComingUp[0] == true then
-                        style = style.."ComingUp"
-                    end
-                    if headlineStrapnoBBC[0] == true then
-                        style = style.." ComingUpOnly"
-                    end
-
-                    if ffi.string(headlineStrap2) == "" then
-                        GFX:send("headline", {Type = "Show-Headline", Text = ffi.string(headlineStrap1), Style = style, Regional = shitViz[0]})
-                    else
-                        GFX:send("headline", {Type = "Show-Headline", Text = ffi.string(headlineStrap1).."|"..ffi.string(headlineStrap2), Style = style, Regional = false})
-                    end
-
-                end
-
-                imgui.SameLine()
-
-                if imgui.Button("Hide Strap") then
-                    GFX:send("headline", {Type = "Hide-Headline", Regional = shitViz[0]})
-                end
-
-                imgui.Separator()
-                imgui.Separator()
-
-                
-            imgui.End()
+        if HeadlineControl.shouldShow[0] then
+            HeadlineControl.draw()
         end
 
         if showLiveCon[0] == true then
@@ -727,15 +661,6 @@ imgui.Render()
 imgui.love.RenderDrawLists()
 
 end
-
-
-
-
-
-
-
-
-
 
 
 
