@@ -1,5 +1,11 @@
 local tickerControl = {}
 
+--Check if ticker.txt exists
+local tickerExists = love.filesystem.read("ticker.txt")
+if tickerExists == nil then
+    love.filesystem.write("ticker.txt", "!hh\n!h Edit the text in VizHelper\n!ii\n!i Edit the text in VizHelper")
+end
+
 tickerControl.shouldShow = ffi.new("bool[1]", false)
 
 tickerControl.defaultTickerText = ffi.new("char[1024]", "bbc.co.uk/news")

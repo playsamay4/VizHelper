@@ -2,22 +2,10 @@ local inspect = require "lib.inspect"
 
 --Set Identity
 love.filesystem.setIdentity("VizHelper")
---Save a random file to create the directory
 
---Check if ticker.txt exists
-local tickerExists = love.filesystem.read("ticker.txt")
-if tickerExists == nil then
-    love.filesystem.write("ticker.txt", "!hh\n!h Edit the text in VizHelper\n!ii\n!i Edit the text in VizHelper")
-end
 
-local brandingSelectedFile = love.filesystem.read("branding_exdata.bin")
-if brandingSelectedFile == nil then
-    love.filesystem.write("branding_exdata.bin", "1")
-    brandingSelectedFile = "1"
-end
+
 love.filesystem.createDirectory("libraries")
-
-
 -- Set the file paths
 local srcFilePath = love.filesystem.getSourceBaseDirectory() .. "/VizHelper/imgui.dll"
 local destFilePath = love.filesystem.getSaveDirectory() .. "/libraries/cimgui.dll"
@@ -57,6 +45,7 @@ imgui = require "cimgui" -- cimgui is the folder containing the Lua module (the 
 
 AstonControl = require "modules.aston_control"
 TickerControl = require "modules.ticker_control"
+BrandingControl = require "modules.branding_control"
 
 local showTileCon = ffi.new("bool[1]", false)
 local showHeadlineCon = ffi.new("bool[1]", false)
@@ -142,42 +131,6 @@ local automationList = {
         {id = "Viz Show Ticker", data = {}, delay = 10000},
     }}
 }
-
-
-local brandingNameBox = ffi.new("char[1024]", "News Red Straps")
-local brandingThemeNameBox = ffi.new("char[1024]", "NEWS")
-local brandingThemeColor = ffi.new("float[3]", {0.68,0,0})
-local brandingTickerOpaque = ffi.new("bool[1]", true)
-local brandingColoredStrap = ffi.new("bool[1]", true)
-local clockModeBox = ffi.new("int[1]", 0)
-
-local brandingPresets = {}
-local brandingPresetSelected = tonumber(brandingSelectedFile)
-if love.filesystem.getInfo("branding.dat") ~= nil then
-    ---@diagnostic disable-next-line: cast-local-type
-    brandingPresets = bitser.loadLoveFile("branding.dat")
-else
-    brandingPresets = {
-        {name = "News Red Straps",channelName = "NEWS", opaque = true, coloredStrap = true, themeColor = {0.68,0,0}, mode = "Channel", clockMode = "default"},
-        {name = "News Channel Original",channelName = "NEWS", opaque = false, coloredStrap = false, themeColor = {0.68,0,0}, mode = "Channel", clockMode = "default"},
-        {name = "World News", channelName = "WORLD NEWS", opaque = false, coloredStrap = false, themeColor = {0.68,0,0}, mode = "World", clockMode = "off"},
-        {name = "Breakfast", channelName = "BREAKFAST", opaque = false, coloredStrap = false, themeColor = {0.95,0.3,0}, mode = "Breakfast", clockMode = "breakfast"},
-        {name = "Region Example (NWT)", channelName = "NORTH WEST TONIGHT", opaque = false, coloredStrap = false, themeColor = {0.68, 0, 0}, mode = "Region", clockMode = "default"},
-    }
-    bitser.dumpLoveFile("branding.dat", brandingPresets)
-    local sendData = {
-        Type = "SetBranding",
-        ChannelName = "NEWS",
-        Opaque = true,
-        ColoredStrap = true,
-        ThemeColor = {0.68,0,0},
-        Mode = "Channel",
-        ClockMode = "default"
-    }
-    GFX:send("headline", sendData)
-end
-
-
 
 
 
@@ -389,7 +342,7 @@ function love.draw()
 
             imgui.SameLine()
             if imgui.Button("Branding\nControl", imgui.ImVec2_Float(100,100)) then
-                showBrandingCon[0] = true
+                BrandingControl.show()
             end
 
 
@@ -450,23 +403,6 @@ function love.draw()
             if connectedToViz == false then imgui.EndDisabled() end
 
             imgui.Separator()
-            -- imgui.SameLine()
-            
-            -- if imgui.Combo_Str("###lowerThirdCombo", stylePicker, "News Channel Style\0World Style\0Breakfast Style\0Custom Style (not implemented yet)\0") then
-            
-            --     if stylePicker[0] == 0 then
-            --         GFX:send("headline", {Type = "SetStyle", Style = "Channel"})
-            --     elseif stylePicker[0] == 1 then
-            --         GFX:send("headline", {Type = "SetStyle", Style = "World"})
-            --     elseif stylePicker[0] == 2 then
-            --         GFX:send("headline", {Type = "SetStyle", Style = "Breakfast"})
-            --     end
-
-            --     imgui.EndCombo()
-            -- end
-            -- if imgui.IsItemHovered() then
-            --     imgui.SetTooltip("Select the style of graphics you want to use")
-            -- end
 
             
             imgui.Text("BETA - A MUCH EASIER AND CLEANER VERSION IS IN DEVELOPMENT")
@@ -759,128 +695,8 @@ function love.draw()
             TickerControl.draw()
         end
 
-        if showBrandingCon[0] == true then
-            imgui.Begin("Branding Control", showBrandingCon, imgui.love.WindowFlags("NoSavedSettings", "NoResize"))
-            imgui.SetWindowSize_Vec2(imgui.ImVec2_Float(800,400))
-
-                imgui.PushFont(TimingsFont)
-                imgui.Text("Branding")
-                imgui.PopFont()                                 
-                imgui.Text("Controls branding of all onscreen graphics")
-                imgui.Separator()
-                imgui.Separator()
-
-                imgui.Text("Branding Theme name")
-                imgui.SameLine()
-                imgui.InputText("###brandingThemeName", brandingNameBox, 1024)
-
-                imgui.Text("Channel name")
-                imgui.SameLine()
-                imgui.InputText("###brandingNameInput", brandingThemeNameBox, 1024)
-
-                imgui.Text("Theme colour")
-                imgui.SameLine()
-                imgui.ColorEdit3("###brandingColorInput",brandingThemeColor,imgui.love.ColorEditFlags("None"))
-
-                imgui.Text("Clock mode")
-                imgui.SameLine()
-                if imgui.Combo_Str("###clockModeCombo", clockModeBox, "On\0Off\0Breakfast Clock\0") then
-                    if clockModeBox[0] == 0 then
-                        brandingPresets[brandingPresetSelected].clockMode = "default"
-                    elseif clockModeBox[0] == 1 then
-                        brandingPresets[brandingPresetSelected].clockMode = "off"
-                    elseif clockModeBox[0] == 2 then
-                        brandingPresets[brandingPresetSelected].clockMode = "breakfast"
-                    end
-                end
-
-                imgui.Checkbox("Opaque ticker", brandingTickerOpaque)
-                imgui.SameLine()
-                imgui.Checkbox("Coloured Straps", brandingColoredStrap)
-                
-                
-                if brandingPresets[1].name ~= "News Red Straps" then
-                    table.insert(brandingPresets, 1, {name = "News Red Straps", channelName = "NEWS", opaque = true, coloredStrap = true, themeColor = {0.68,0,0}, clockMode = "default"})
-                end
-                
-
-                imgui.Text("Saved brandings")
-                imgui.SameLine()
-                imgui.BeginListBox("###brandingPresetList",imgui.ImVec2_Float(300, 80))
-                ---@diagnostic disable-next-line: param-type-mismatch
-                for i, v in ipairs(brandingPresets) do
-                        local selected = false
-                        if brandingPresetSelected == i then
-                            selected = true
-
-
-                        end
-
-                        -- imgui.PushStyleColor_Vec4(imgui.ImGuiCol_Text, imgui.ImVec4_Float(v.tcolor[1], v.tcolor[2], v.tcolor[3], 1))
-                        -- imgui.PushStyleColor_Vec4(imgui.ImGuiCol_FrameBg, imgui.ImVec4_Float(1,0,0, 1))
-                        if imgui.Selectable_Bool(v.name.."###"..i, selected) then
-                            brandingPresetSelected = i
-                            love.filesystem.write("branding_exdata.bin", tostring(i))
-                            brandingNameBox = ffi.new("char[1024]", v.name)
-                            brandingThemeNameBox = ffi.new("char[1024]", v.channelName)
-                            brandingThemeColor[0] = v.themeColor[1]
-                            brandingThemeColor[1] = v.themeColor[2]
-                            brandingThemeColor[2] = v.themeColor[3]
-                            if v.opaque == nil then brandingTickerOpaque[0] = false else brandingTickerOpaque[0] = v.opaque end
-                            if v.coloredStrap == nil then brandingColoredStrap[0] = false else brandingColoredStrap[0] = v.coloredStrap end
-
-                            
-                            if v.clockMode == "default" then
-                                clockModeBox[0] = 0
-                            elseif v.clockMode == "off" then
-                                clockModeBox[0] = 1
-                            elseif v.clockMode == "breakfast" then
-                                clockModeBox[0] = 2
-                            end
-                            
-                            GFX:send("headline", {Type = "Set-Branding", channelName = ffi.string(brandingThemeNameBox), opaque = v.opaque, coloredStrap = v.coloredStrap, ThemeColor = {brandingThemeColor[0],brandingThemeColor[1],brandingThemeColor[2]}, clockMode = v.clockMode})
-
-
-                        end
-                        imgui.SameLine()
-                        imgui.PushStyleColor_Vec4(imgui.ImGuiCol_ChildBg, imgui.ImVec4_Float(v.themeColor[1], v.themeColor[2], v.themeColor[3], 1))
-                            imgui.BeginChild_Str("###brandingPresetColExample"..i, imgui.ImVec2_Float(30,18))
-                            imgui.EndChild()
-                        imgui.PopStyleColor()
-                    end
-                imgui.EndListBox()
-
-                imgui.SetCursorPosX(110)
-
-                if imgui.Button("Save branding") then
-                    table.insert(brandingPresets, {name = ffi.string(brandingNameBox), channelName = ffi.string(brandingThemeNameBox), themeColor = {brandingThemeColor[0], brandingThemeColor[1], brandingThemeColor[2]}, opaque = brandingTickerOpaque[0], coloredStrap = brandingColoredStrap[0]})
-                end 
-
-                imgui.SameLine()
-
-                if imgui.Button("Remove selected branding") then
-                    table.remove(brandingPresets, brandingPresetSelected)
-                    brandingPresetSelected = 0
-                end
-
-                imgui.SameLine()
-                
-                if imgui.Button("Send Branding") then
-                    local xclockMode = "default"
-                    if clockModeBox[0] == 0 then
-                        xclockMode = "default"
-                    elseif clockModeBox[0] == 1 then
-                        xclockMode = "off"
-                    elseif clockModeBox[0] == 2 then
-                        xclockMode = "breakfast"
-                    end
-                    GFX:send("headline", {Type = "Set-Branding", channelName = ffi.string(brandingThemeNameBox), opaque = brandingTickerOpaque, coloredStrap = brandingColoredStrap[0], ThemeColor = {brandingThemeColor[0],brandingThemeColor[1],brandingThemeColor[2]}})
-                end
-
-                imgui.Text("Custom logos coming soon....")
-
-            imgui.End()
-
+        if BrandingControl.shouldShow[0] == true then
+            BrandingControl.draw()
         end
 
         if showError == true then 
@@ -979,8 +795,8 @@ function love.textinput(t)
 end
 
 function love.quit()
-    bitser.dumpLoveFile("badges.dat", presetBadges)
-    bitser.dumpLoveFile("branding.dat", brandingPresets)
+    bitser.dumpLoveFile("badges.dat", AstonControl.presetBadges)
+    bitser.dumpLoveFile("branding.dat", BrandingControl.brandingPresets)
     return imgui.love.Shutdown()
 end
 
