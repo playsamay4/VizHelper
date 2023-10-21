@@ -447,7 +447,7 @@ function love.draw()
 
   
             if imgui.Button("Playout\nControl", imgui.ImVec2_Float(100, 100)) then
-                showPlayoutCon[0] = true
+                -- showPlayoutCon[0] = true
             end
             if imgui.IsItemHovered() then
                 imgui.SetTooltip("in development - coming soon")
@@ -475,7 +475,10 @@ function love.draw()
             imgui.SameLine()
             if imgui.Button("Automation\n    (Alpha)", imgui.ImVec2_Float(100, 100)) then
                 imgui.SetNextWindowPos(imgui.ImVec2_Float(100,120))
-                showAutomationCon[0] = true            
+                -- showAutomationCon[0] = true            
+            end
+            if imgui.IsItemHovered() then
+                imgui.SetTooltip("in development - coming soon")
             end
 
             
