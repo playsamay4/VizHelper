@@ -55,8 +55,11 @@ package.cpath = string.format("%s;%s/?.%s", package.cpath, lib_path, extension)
 imgui = require "cimgui" -- cimgui is the folder containing the Lua module (the "src" folder in the github repository)
 
 
+astonControl = require "modules.aston_control"
+
+
 local showTickerCon = ffi.new("bool[1]", false)
-local showLowerThirdCon = ffi.new("bool[1]", false)
+
 local showTileCon = ffi.new("bool[1]", false)
 local showHeadlineCon = ffi.new("bool[1]", false)
 local showLiveCon = ffi.new("bool[1]", false)
@@ -65,26 +68,6 @@ local showBrandingCon = ffi.new("bool[1]", false)
 local showAutomationCon = ffi.new("bool[1]", false)
 
 local stylePicker = ffi.new("int[1]", 0)
-
-local lowerThirdText = ffi.new("char[1024]", "")
-local lowerThirdText2 = ffi.new("char[1024]", "")
-local lowerThirdText3 = ffi.new("char[1024]", "")
-local lowerThirdText4 = ffi.new("char[1024]", "")
-
-local breakingTitle = ffi.new("char[1024]", "")
-local breakingText = ffi.new("char[1024]", "")
-local breakingText1 = ffi.new("char[1024]", "")
-local breakingText2 = ffi.new("char[1024]", "")
-
-local badgeText = ffi.new("char[1024]", "")
-local badgeBGColor = ffi.new("float[3]",{0.68,0,0})
-local badgeTextColor = ffi.new("float[3]",{1,1,1})
-
-local socialBadgeText = ffi.new("char[1024]", "")
-local creditBadgeText = ffi.new("char[1024]", "")
-
-local nameStrapText1 = ffi.new("char[1024]", "")
-local nameStrapText2 = ffi.new("char[1024]", "")
 
 local headlineStrap1 = ffi.new("char[1024]", "")
 local headlineStrap2 = ffi.new("char[1024]", "")
@@ -209,52 +192,15 @@ if tickerFile ~= nil then
     tickerText = ffi.new("char[65535]", tickerFile)
 end
 
-local presetBadges = {}
-
-if love.filesystem.getInfo("badges.dat") ~= nil then
-    ---@diagnostic disable-next-line: cast-local-type
-    presetBadges = bitser.loadLoveFile("badges.dat")
-else
-    presetBadges = {
-        {"NEWS AT NINE", bcolor = {.7,0,0,1}, tcolor = {1,1,1,1}},
-        {"NEWS AT FIVE", bcolor = {.7,0,0,1}, tcolor = {1,1,1,1}},
-        {"ACROSS THE UK", bcolor = {.7,0,0,1}, tcolor = {1,1,1,1}},
-        {"BUSINESS BREIFING", bcolor = {.7,0,0,1}, tcolor = {1,1,1,1}},
-        {"REVIEW 2022", bcolor = {.7,0,0,1}, tcolor = {1,1,1,1}},
-        {"OUTSIDE SOURCE", bcolor = {.9,0,0,1}, tcolor = {1,1,1,1}},
-        {"THE BRIEFING", bcolor = {.9,0,0,1}, tcolor = {1,1,1,1}},
-        {"WORLD NEWS TODAY", bcolor = {.9,0,0,1}, tcolor = {1,1,1,1}},
-        {"OUTSIDE SOURCE", bcolor = {.9,0,0,1}, tcolor = {1,1,1,1}},
-        {"THE CONTEXT", bcolor = {.9,0,0,1}, tcolor = {1,1,1,1}},
-        {"OUTSIDE SOURCE", bcolor = {0,0.5,.8,1}, tcolor = {1,1,1,1}},
-        {"NEWSROOM LIVE", bcolor = {1,1,1,1}, tcolor = {.7,0,0,0}},
-        {"AFTERNOON LIVE", bcolor = {1,0.3,0,1}, tcolor = {1,1,1,1}},
-        {"NEWSDAY", bcolor = {1,0.4,0,1}, tcolor = {1,1,1,1}},
-        {"IMPACT", bcolor = {0.9,0.2,0,1}, tcolor = {1,1,1,1}},
-        {"WORKLIFE", bcolor = {0.9,0.5,0.2,1}, tcolor = {1,1,1,1}},
-        {"BEYOND 100 DAYS", bcolor = {0,0.4,0.5,1}, tcolor = {1,1,1,1}},
-        {"THE CONTEXT", bcolor = {0,0.4,0.5,1}, tcolor = {1,1,1,1}},
-        {"THE PAPERS", bcolor = {0,0.4,0.5,1}, tcolor = {1,1,1,1}},
-        {"BUSINESS LIVE", bcolor = {0,0.3,0.6,1}, tcolor = {1,1,1,1}},
-        {"GLOBAL", bcolor = {0.1,0.6,0.6,1}, tcolor = {1,1,1,1}},
-        {"NICKY CAMPBELL", bcolor = {0,0.7,0.7,1}, tcolor = {0,0,0,1}},
-        {"FOCUS ON AFRICA", bcolor = {0.3,0.5,0,1}, tcolor = {1,1,1,1}},
-        {"G M T", bcolor = {0.6,0,0.5,1}, tcolor = {1,1,1,1}},
-        {"SPORTSDAY", bcolor = {0.9,0.7,0,1}, tcolor = {0,0,0,1}},
-        {"YOUR QUESTIONS ANSWERED", bcolor = {0.4,0.4,0.4,1}, tcolor = {1,1,1,1}},        
-    }
-    bitser.dumpLoveFile("badges.dat", presetBadges)
-end
-local presetBadgeSelected = 0
 
 GFX = sock.newClient("localhost", 10655)
 GFX:connect()
 
 local connectedToViz = false
 
-local showError = false
-local errorTitle = ""
-local errorMessage = ""
+showError = false
+errorTitle = ""
+errorMessage = ""
 
 
 GFX:on("connect", function(data)
@@ -437,7 +383,7 @@ function love.draw()
             imgui.Text("Welcome to VizHelper")
             imgui.Separator()
             if imgui.Button("Aston\nControl", imgui.ImVec2_Float(100, 100)) then
-                showLowerThirdCon[0] = true
+                astonControl.show()
             end
             imgui.SameLine() 
             if imgui.Button("Ticker Control", imgui.ImVec2_Float(100, 100)) then
@@ -595,345 +541,8 @@ function love.draw()
              imgui.End()
         end
 
-        if showLowerThirdCon[0] == true then
-            imgui.Begin("Aston Control", showLowerThirdCon, imgui.love.WindowFlags("NoSavedSettings","NoResize"))
-                imgui.SetWindowSize_Vec2(imgui.ImVec2_Float(800,400))
-                imgui.PushFont(TitleFont)
-                imgui.PopFont()
-                imgui.Separator()
-                
-                if imgui.Button("Show News Bar") then
-                    GFX:send("headline", {Type = "ShowLowerThird"})
-                end
-                imgui.SameLine()
-                if imgui.Button("Hide News Bar") then
-                    GFX:send("headline", {Type = "HideLowerThird"})
-                end
-
-                imgui.Separator()
-
-                if imgui.BeginTabBar("Tabs") then
-                    if imgui.BeginTabItem("Text Strap") then
-                        imgui.PushFont(TimingsFont)
-                        imgui.Text("Text Strap")
-                        imgui.PopFont()
-                        imgui.Text("Top line text:") imgui.SameLine()
-                        imgui.InputText("###lowerThirdText", lowerThirdText, 1024)
-                        imgui.Text("Bottom line text (1/2) Leave blank for a single line strap:") imgui.SameLine()
-                        imgui.InputText("###lowerThirdText2", lowerThirdText2, 1024)
-                        imgui.Text("Bottom line (2/2) Leave blank if you don't want it to scroll:") imgui.SameLine()
-                        imgui.InputText("###lowerThirdText3", lowerThirdText3, 1024)
-
-                        imgui.Text("Text to appear next to logo (Ex. IN BRIEF) leave blank for none")
-                        imgui.SameLine()
-                        imgui.InputText("###lowerThirdText4", lowerThirdText4, 1024)
-
-                        if imgui.Button("Show/Update Strap") then
-                            if ffi.string(lowerThirdText) == "" then
-                                showError = true
-                                errorTitle = "You missed a field!"
-                                errorMessage = "You need to input text for the top line"
-                                return
-                            end
-                            
-                            GFX:send("headline", {Type = "Show-LowerThirdText", Text = ffi.string(lowerThirdText).."\n"..ffi.string(lowerThirdText2).."\n"..ffi.string(lowerThirdText3), BoxText = ffi.string(lowerThirdText4)})
-                        end
-
-                        imgui.SameLine()
-
-                        if imgui.Button("Hide Strap") then
-                            GFX:send("headline", {Type = "Hide-LowerThirdText"})
-                        end
-                        imgui.EndTabItem()
-                    end
-
-                    if imgui.BeginTabItem("Breaking Strap") then
-                        imgui.PushFont(TimingsFont)
-                        imgui.Text("Breaking Strap")
-                        imgui.PopFont()
-
-                        imgui.Text("Title of breaking news story (Appears after BREAKING)") imgui.SameLine()
-                        imgui.InputText("###lowerThirdText5", breakingTitle, 1024)
-                        imgui.Text("Text to appear on the top line") imgui.SameLine()
-                        imgui.InputText("###lowerThirdText6", breakingText, 1024)
-                        imgui.Text("Text to appear on the bottom line (1/2)") imgui.SameLine()
-                        imgui.InputText("###lowerThirdText7", breakingText1, 1024)
-                        imgui.Text("Bottom line (2/2) Type NOP if you dont want it to scroll") imgui.SameLine()
-                        imgui.InputText("###lowerThirdText8", breakingText2, 1024)
-
-                        imgui.Separator()
-                        imgui.PushFont(TitleFont)
-                        imgui.Text("---- IMPORTANT ----")
-                        imgui.Text("Needs to appear in order: Show Breaking -> Scroll Breaking (However many times you want) -> Show/Update Strap")
-                        imgui.Text("Breaking the flow will mess the strap up and you may have to restart Viz2.0")
-                        imgui.Text("Updating the strap doesn't need to follow the flow, just press update")
-                        imgui.PopFont()
-
-                        if imgui.Button("Show BREAKING") then
-                            if ffi.string(breakingTitle) == "" then
-                                showError = true
-                                errorTitle = "You missed a field!"
-                                errorMessage = "You need to input the breaking strap's title"
-                                return
-                            elseif ffi.string(breakingText) == "" then
-                                showError = true
-                                errorTitle = "You missed a field!"
-                                errorMessage = "You need to input the breaking strap's top line"
-                                return
-                            elseif ffi.string(breakingText1) == "" then
-                                showError = true
-                                errorTitle = "You missed a field!"
-                                errorMessage = "You need to input text for the bottom lines (1/2)"
-                                return
-                            elseif ffi.string(breakingText2) == "" then
-                                showError = true
-                                errorTitle = "You missed a field!"
-                                errorMessage = "You need to input text for the bottom lines (2/2)"
-                                return
-                    
-                            end
-
-
-                            GFX:send("headline", {Type = "Show-BreakingTitle", Text = ffi.string(breakingTitle)})
-                        end
-
-                        imgui.SameLine()
-
-                        if imgui.Button("Scroll BREAKING") then
-                            if ffi.string(breakingTitle) == "" then
-                                showError = true
-                                errorTitle = "You missed a field!"
-                                errorMessage = "You need to input the breaking strap's title"
-                                return
-                            elseif ffi.string(breakingText) == "" then
-                                showError = true
-                                errorTitle = "You missed a field!"
-                                errorMessage = "You need to input the breaking strap's top line"
-                                return
-                            elseif ffi.string(breakingText1) == "" then
-                                showError = true
-                                errorTitle = "You missed a field!"
-                                errorMessage = "You need to input text for the bottom lines (1/2)"
-                                return
-                            elseif ffi.string(breakingText2) == "" then
-                                showError = true
-                                errorTitle = "You missed a field!"
-                                errorMessage = "You need to input text for the bottom lines (2/2)"
-                                return
-                    
-                            end
-
-                            GFX:send("headline", {Type = "Advance-BreakingTitle"})
-                        end
-
-                        imgui.SameLine()
-
-                        if imgui.Button("Show/Update Strap###breaking") then
-                            if ffi.string(breakingTitle) == "" then
-                                showError = true
-                                errorTitle = "You missed a field!"
-                                errorMessage = "You need to input the breaking strap's title"
-                                return
-                            elseif ffi.string(breakingText) == "" then
-                                showError = true
-                                errorTitle = "You missed a field!"
-                                errorMessage = "You need to input the breaking strap's top line"
-                                return
-                            elseif ffi.string(breakingText1) == "" then
-                                showError = true
-                                errorTitle = "You missed a field!"
-                                errorMessage = "You need to input text for the bottom lines (1/2)"
-                                return
-                            elseif ffi.string(breakingText2) == "" then
-                                showError = true
-                                errorTitle = "You missed a field!"
-                                errorMessage = "You need to input text for the bottom lines (2/2)"
-                                return
-                    
-                            end
-
-                            GFX:send("headline", {Type = "Show-BreakingLowerThird", Text = ffi.string(breakingText).."\n"..ffi.string(breakingText1).."\n"..ffi.string(breakingText2)})
-                        end
-
-                        imgui.SameLine()
-
-                        if imgui.Button("Hide Strap###breakingHideStrap") then
-                            GFX:send("headline", {Type = "Hide-BreakingLowerThird"})
-                        end
-                        imgui.EndTabItem()
-                    end
-
-                    if imgui.BeginTabItem("Name Strap") then
-                        imgui.PushFont(TimingsFont)
-                        imgui.Text("Name Strap")
-                        imgui.PopFont()
-                        
-                        
-                        imgui.Text("Text to appear on the top line") imgui.SameLine()
-                        imgui.InputText("##nameStrap1", nameStrapText1, 1024)
-                        imgui.Text("Text to appear on the bottom line, leave empty for top only") imgui.SameLine()
-                        imgui.InputText("##nameStrap2", nameStrapText2, 1024)
-        
-                        if imgui.Button("Show Name Strap") then
-                            if ffi.string(nameStrapText1) == "" then
-                                showError = true
-                                errorTitle = "You missed a field!"
-                                errorMessage = "You need at least input text for the top line"
-                                return
-                            end
-        
-                            if ffi.string(nameStrapText2) == "" then
-                                GFX:send("headline", {Type = "Show-PresenterName", Text = ffi.string(nameStrapText1)})
-                            else
-                                GFX:send("headline", {Type = "Show-PresenterName", Text = ffi.string(nameStrapText1).."\n"..ffi.string(nameStrapText2)})
-                            end
-                        end
-        
-                        imgui.SameLine()
-        
-                        if imgui.Button("Hide Name Strap") then
-                            GFX:send("headline", {Type = "Hide-PresenterName"})
-                        end
-                        imgui.EndTabItem()
-                    end
-
-                    if imgui.BeginTabItem("Programme Badge") then
-                        imgui.PushFont(TimingsFont)
-                        imgui.Text("Programme Badge")
-                        imgui.PopFont()
-
-                        imgui.Text("Badge Text") imgui.SameLine()
-                        imgui.InputText("###lowerThirdBadgeText",badgeText, 1024)
-
-                        imgui.Text("Background Colour") imgui.SameLine()
-                        if imgui.ColorEdit3("###lowerThirdBadgeBGColor",badgeBGColor, imgui.love.ColorEditFlags("None")) then
-                        
-                        end
-
-                        imgui.Text("Text Colour") imgui.SameLine()
-                        if imgui.ColorEdit3("###lowerThirdBadgeTextColor",badgeTextColor, imgui.love.ColorEditFlags("None")) then
-                            
-                        end
-                        
-                        if imgui.Button("Set Badge") then
-                            GFX:send("headline", {Type = "Set-ProgramBadge", Text = ffi.string(badgeText), TextColor = convertTableToCondensedString({badgeTextColor[0], badgeTextColor[1], badgeTextColor[2]}), BackgroundColor = convertTableToCondensedString({badgeBGColor[0], badgeBGColor[1], badgeBGColor[2]})})
-                            
-                        end
-
-                        imgui.SameLine()
-
-                        if imgui.Button("Remove Badge") then
-                            GFX:send("headline", {Type = "Remove-ProgramBadge"})
-                        end
-
-                        imgui.SameLine()
-
-                        if imgui.Button("Show Badge") then
-                            print(convertTableToCondensedString({badgeTextColor[0], badgeTextColor[1], badgeTextColor[2]}))
-                            GFX:send("headline", {Type = "Show-ProgramBadge", Text = ffi.string(badgeText), TextColor = convertTableToCondensedString({badgeTextColor[0], badgeTextColor[1], badgeTextColor[2]}), BackgroundColor = convertTableToCondensedString({badgeBGColor[0], badgeBGColor[1], badgeBGColor[2]})})
-                        end
-
-                        imgui.SameLine()
-
-                        if imgui.Button("Hide Badge") then
-                            GFX:send("headline", {Type = "Hide-ProgramBadge"})
-                        end
-
-                        imgui.SameLine()
-                        imgui.SetCursorPosX(400)
-
-                        imgui.BeginListBox("###programBadgeList",imgui.ImVec2_Float(300, 80))
-                            ---@diagnostic disable-next-line: param-type-mismatch
-                            for i, v in ipairs(presetBadges) do
-                                local selected = false
-                                if presetBadgeSelected == i then
-                                    selected = true
-                                end
-
-                                -- imgui.PushStyleColor_Vec4(imgui.ImGuiCol_Text, imgui.ImVec4_Float(v.tcolor[1], v.tcolor[2], v.tcolor[3], 1))
-                                -- imgui.PushStyleColor_Vec4(imgui.ImGuiCol_FrameBg, imgui.ImVec4_Float(1,0,0, 1))
-                                if imgui.Selectable_Bool(v[1].."###"..i, selected) then
-                                    presetBadgeSelected = i
-                                    badgeText = ffi.new("char[1024]", v[1])
-                                    badgeTextColor[0] = v.tcolor[1]
-                                    badgeTextColor[1] = v.tcolor[2]
-                                    badgeTextColor[2] = v.tcolor[3]
-                                    badgeBGColor[0] = v.bcolor[1]
-                                    badgeBGColor[1] = v.bcolor[2]
-                                    badgeBGColor[2] = v.bcolor[3]
-                                    
-
-                                end
-                                imgui.SameLine()
-                                imgui.PushStyleColor_Vec4(imgui.ImGuiCol_ChildBg, imgui.ImVec4_Float(v.bcolor[1], v.bcolor[2], v.bcolor[3], 1))
-                                    imgui.BeginChild_Str("###programBadgeColExample"..i, imgui.ImVec2_Float(30,18))
-                                    imgui.EndChild()
-                                imgui.PopStyleColor()
-                            end
-                        imgui.EndListBox()
-
-                        imgui.SetCursorPosX(420)
-
-                        if imgui.Button("Save badge") then
-                            table.insert(presetBadges, {ffi.string(badgeText), tcolor = {badgeTextColor[0], badgeTextColor[1], badgeTextColor[2]}, bcolor = {badgeBGColor[0], badgeBGColor[1], badgeBGColor[2]}})
-
-                        end 
-
-                        imgui.SameLine()
-
-                        if imgui.Button("Remove selected badge") then
-                            table.remove(presetBadges, presetBadgeSelected)
-                            presetBadgeSelected = 0
-                        end
-                        imgui.EndTabItem()
-                    end
-
-                    if imgui.BeginTabItem("Other badges") then
-                        imgui.PushFont(TimingsFont)
-                        imgui.Text("Misc. badges")
-                        imgui.PopFont()
-
-                        imgui.Text("Socials badge text:")
-                        imgui.SameLine()
-                        imgui.InputText("###socialBadgeTextInput", socialBadgeText, 1024)
-                        imgui.SameLine()
-                        if imgui.Button("Show###socialBadgeButtonShow") then
-                            GFX:send("headline", {Type = "Show-SocialsBadge", Text = ffi.string(socialBadgeText)})
-                        end
-                        imgui.SameLine()
-                        if imgui.Button("Hide###socialBadgeButtonHide") then
-                            GFX:send("headline", {Type = "Hide-SocialsBadge"})
-                        end
-
-                        imgui.Text("Credit badge text:")
-                        imgui.SameLine()
-                        imgui.InputText("###creditBadgeTextInput", creditBadgeText, 1024)
-                        imgui.SameLine()
-                        if imgui.Button("Show###creditBadgeButtonShow") then
-                            GFX:send("headline", {Type = "Show-CreditBadge", Text = ffi.string(creditBadgeText)})
-                        end
-                        imgui.SameLine()
-                        if imgui.Button("Hide###creditBadgeButtonHide") then
-                            GFX:send("headline", {Type = "Hide-CreditBadge"})
-                        end      
-                        imgui.EndTabItem()  
-                    end
-
-                    if imgui.BeginTabItem("Misc.") then
-                        imgui.PushFont(TimingsFont)
-                        imgui.Text("Miscellaneous")
-                        imgui.PopFont()
-
-                        if imgui.Button("Hide clock") then
-                            GFX:send("headline", {Type = "Hide-Clock"})
-                        end                   
-                        imgui.EndTabItem()
-                    end
-
-                    imgui.EndTabBar()
-                end
-
-            imgui.End()
+        if astonControl.shouldShow[0] == true then
+            astonControl.draw()
         end
 
         if showHeadlineCon[0] == true then
