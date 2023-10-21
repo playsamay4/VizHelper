@@ -55,10 +55,8 @@ package.cpath = string.format("%s;%s/?.%s", package.cpath, lib_path, extension)
 imgui = require "cimgui" -- cimgui is the folder containing the Lua module (the "src" folder in the github repository)
 
 
-astonControl = require "modules.aston_control"
-
-
-local showTickerCon = ffi.new("bool[1]", false)
+AstonControl = require "modules.aston_control"
+TickerControl = require "modules.ticker_control"
 
 local showTileCon = ffi.new("bool[1]", false)
 local showHeadlineCon = ffi.new("bool[1]", false)
@@ -80,13 +78,7 @@ local liveBugLive = ffi.new("bool[1]", true)
 local liveBugShowTime = ffi.new("bool[1]", false)
 local liveBugTimeOffset = ffi.new("int[1]", 0)
 
-local defaultTickerText = ffi.new("char[1024]", "bbc.co.uk/news")
 
-local tickerText = ffi.new("char[65535]")
-local tickerTextRSS = ffi.new("char[65535]", "")
-local tickerUsingRSS = ffi.new("bool[1]", false)
-
-local wires = require "wires"
 
 local TitlesList = {
     {name = "News Channel Generic Titles", vid = "NC_Titles.ogv", aud = "TitlesE.wav"},
@@ -186,11 +178,7 @@ else
 end
 
 
---Load ticker text
-local tickerFile = love.filesystem.read("ticker.txt")
-if tickerFile ~= nil then
-    tickerText = ffi.new("char[65535]", tickerFile)
-end
+
 
 
 GFX = sock.newClient("localhost", 10655)
@@ -204,7 +192,7 @@ errorMessage = ""
 
 
 GFX:on("connect", function(data)
-    GFX:send("headline", {Type = "GetTickerText", Text = ffi.string(tickerText), DefaultText = ffi.string(defaultTickerText)})
+    GFX:send("headline", {Type = "GetTickerText", Text = ffi.string(TickerControl.tickerText), DefaultText = ffi.string(TickerControl.defaultTickerText)})
     connectedToViz = true
 
     --This breaks figure out why \/\/\/
@@ -352,7 +340,7 @@ function love.update(dt)
     imgui.NewFrame()
     timer.update(dt)
     GFX:update()
-    wires.Update(dt)
+    TickerControl.update(dt)
 
 end
 
@@ -383,11 +371,11 @@ function love.draw()
             imgui.Text("Welcome to VizHelper")
             imgui.Separator()
             if imgui.Button("Aston\nControl", imgui.ImVec2_Float(100, 100)) then
-                astonControl.show()
+                AstonControl.show()
             end
             imgui.SameLine() 
             if imgui.Button("Ticker Control", imgui.ImVec2_Float(100, 100)) then
-                showTickerCon[0] = true
+                TickerControl.show()
             end
             imgui.SameLine()
 
@@ -541,8 +529,8 @@ function love.draw()
              imgui.End()
         end
 
-        if astonControl.shouldShow[0] == true then
-            astonControl.draw()
+        if AstonControl.shouldShow[0] == true then
+            AstonControl.draw()
         end
 
         if showHeadlineCon[0] == true then
@@ -767,86 +755,8 @@ function love.draw()
          imgui.End()
         end
 
-        if showTickerCon[0] == true then
-            imgui.Begin("Ticker Control", showTickerCon, imgui.love.WindowFlags("NoSavedSettings", "NoResize"))
-                imgui.SetWindowSize_Vec2(imgui.ImVec2_Float(800,400))
-                
-                imgui.Text("Control ticker")
-
-                --Drop down
-                imgui.Separator()
-                imgui.Separator()
-
-                imgui.PushFont(TimingsFont)
-                imgui.Text("Ticker")
-                imgui.PopFont()
-                imgui.Text("Default ticker text") imgui.SameLine()
-                imgui.InputText("###defaultTickerText", defaultTickerText, 1024)
-
-                if imgui.Checkbox("Use BBC News UK RSS Feed", tickerUsingRSS) then
-                    if tickerUsingRSS[0] == true then
-                        GFX:send("headline", {Type = "GetTickerTextTable", Text = wires.wireData, DefaultText = ffi.string(defaultTickerText)})
-                    else
-                        GFX:send("headline", {Type = "GetTickerText", Text = ffi.string(tickerText), DefaultText = ffi.string(defaultTickerText)})
-                    end
-                end
-
-                if tickerUsingRSS[0] == false then
-                    imgui.Separator()
-                    imgui.PushFont(TitleFont)
-                    imgui.Text("--- Ticker Guide ---")
-                    imgui.Text("Use this guide to learn how the ticker is filled")
-                    imgui.Text("To add the HEADLINES text, type !hh")
-                    imgui.Text("To add a headline, type !h followed by the headline text (ex. !h Lorem ipsum dolor sit amet)")
-                    imgui.Text("To add the BREAKING text, type !bb")
-                    imgui.Text("To add a breaking story, type !b followed by the story text (ex. !b Lorem ipsum dolor sit amet)")
-                    imgui.Text("To add the INTERACTIVE text, type !ii")
-                    imgui.Text("To add the text for it, type !i followed by the text (ex. !i Follow us XXXX)")
-                    imgui.Text("A better system is coming i just made this in like 5 mins ")
-                    imgui.PopFont()
-                    imgui.Separator()
-
-                    imgui.InputTextMultiline("###tickerText", tickerText,6553, imgui.ImVec2_Float(800,200), imgui.love.InputTextFlags("None"))
-
-                    
-                    imgui.Separator()
-                end
-
-                if imgui.Button("Ticker Off") then
-                    GFX:send("headline", {Type = "KillTicker", Text = ffi.string(defaultTickerText)})
-                end
-
-                imgui.SameLine()
-
-                if imgui.Button("Ticker On") then
-                    GFX:send("headline", {Type = "ResumeTicker"})
-                end
-
-                imgui.SameLine()
-
-                if tickerUsingRSS[0] == false then
-                    if imgui.Button("Send Updated Ticker Text") then
-                        GFX:send("headline", {Type = "GetTickerText", Text = ffi.string(tickerText), DefaultText = ffi.string(defaultTickerText)})
-                    end
-
-                    imgui.SameLine()
-
-                    if imgui.Button("Save current ticker text") then
-                        --Get and save current ticker text
-                        local saveTickerText = ffi.string(tickerText)
-                        love.filesystem.write("ticker.txt", saveTickerText)
-
-                    end
-
-                    imgui.Separator()
-                end
-
-                
-
-
-                imgui.Separator()
-                imgui.Separator()
-            imgui.End()
+        if TickerControl.shouldShow[0] == true then
+            TickerControl.draw()
         end
 
         if showBrandingCon[0] == true then
