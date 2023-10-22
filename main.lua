@@ -467,7 +467,7 @@ function love.draw()
         end
 
         if PlayoutControl.shouldShow[0] == true then
-            PlayoutControl.draw()
+            -- PlayoutControl.draw()
         end
 
         if TickerControl.shouldShow[0] == true then
