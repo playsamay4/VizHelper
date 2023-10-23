@@ -24,9 +24,7 @@ local timer = require "lib.timer"
 local dllExists = love.filesystem.read("libraries/cimgui.dll")
 local sock = require "lib.sock"
 
---fDialog = FileDialog.new("open",nil,nil,"D:\\dev\\VBN-NewsWire")
-
-
+local showDebug = false
 
 if jit.os == "Windows" then
     if dllExists == nil then
@@ -244,13 +242,16 @@ end
 
 function love.draw()
     love.graphics.setBackgroundColor(0, 0, 0, 1)
-    -- imgui.ShowDemoWindow()
-
+    if showDebug == true then imgui.ShowDemoWindow() end
     imgui.Begin("VizHelper Hub", nil, imgui.love.WindowFlags("MenuBar","NoMove", "NoTitleBar", "NoSavedSettings", "NoResize", "NoBringToFrontOnFocus","NoDocking","NoNavFocus"))
         imgui.SetWindowSize_Vec2(imgui.ImVec2_Float(love.graphics.getWidth(), 1))
         imgui.SetWindowPos_Vec2(imgui.ImVec2_Float(0, 0))
         if imgui.BeginMenuBar() then
             if imgui.BeginMenu("VizHelper") then
+                if imgui.MenuItem_Bool("Toggle ImGUI debug menu") then
+                    showDebug = not showDebug
+                end
+
                 if imgui.MenuItem_Bool("Exit") then
                     love.event.quit()
                 end
