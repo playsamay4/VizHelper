@@ -14,6 +14,8 @@ tickerControl.tickerText = ffi.new("char[65535]")
 tickerControl.tickerTextRSS = ffi.new("char[65535]", "")
 tickerControl.tickerUsingRSS = ffi.new("bool[1]", false)
 
+tickerControl.tickerLimit = ffi.new("int[1]", 0)
+
 local wires = require "wires"
 
 --Load ticker text
@@ -49,7 +51,7 @@ tickerControl.draw = function()
 
         if imgui.Checkbox("Use BBC News UK RSS Feed", tickerControl.tickerUsingRSS) then
             if tickerControl.tickerUsingRSS[0] == true then
-                GFX:send("headline", {Type = "GetTickerTextTable", Text = wires.wireData, DefaultText = ffi.string(tickerControl.defaultTickerText)})
+                GFX:send("headline", {Type = "GetTickerTextTable", Limit = tickerControl.tickerLimit[0],  Text = wires.wireData, DefaultText = ffi.string(tickerControl.defaultTickerText)})
             else
                 GFX:send("headline", {Type = "GetTickerText", Text = ffi.string(tickerControl.tickerText), DefaultText = ffi.string(tickerControl.defaultTickerText)})
             end
@@ -74,6 +76,19 @@ tickerControl.draw = function()
 
             
             imgui.Separator()
+        else 
+            imgui.Text("Limit ticker to ") imgui.SameLine() 
+            if imgui.InputInt(" headlines (0 = no limit) ###tickerLimit", tickerControl.tickerLimit, 1, 2)  then
+                GFX:send("headline", {Type = "GetTickerTextTable", Limit = tickerControl.tickerLimit[0], Text = wires.wireData, DefaultText = ffi.string(tickerControl.defaultTickerText)})
+            end
+
+            if tickerControl.tickerLimit[0] < 0 then
+                tickerControl.tickerLimit[0] = 0
+            end
+
+            if tickerControl.tickerLimit[0] > #wires.wireData then
+                tickerControl.tickerLimit[0] = #wires.wireData
+            end
         end
 
         if imgui.Button("Ticker Off") then
