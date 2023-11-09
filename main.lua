@@ -1,5 +1,7 @@
 local inspect = require "lib.inspect"
 
+Version = "1.2.0"
+
 --Set Identity
 love.filesystem.setIdentity("VizHelper")
 
@@ -71,13 +73,11 @@ local automationList = {
     }}
 }
 
+local gearIcon = love.graphics.newImage("assets/gear.png")
 
+Settings = require "modules.settings"
 
-
-
-
-
-GFX = sock.newClient("localhost", 10655)
+GFX = sock.newClient(Settings.data.ip, 10655)
 GFX:connect()
 
 local connectedToViz = false
@@ -227,7 +227,6 @@ function love.load()
     style.Colors[imgui.ImGuiCol_ScrollbarGrabHovered] = hover
     style.Colors[imgui.ImGuiCol_ScrollbarGrabActive] = active
 
-
     love.window.setTitle("VizHelper")
 end
 
@@ -262,7 +261,7 @@ function love.draw()
         
             imgui.EndMenuBar()
         end
-        imgui.SetNextWindowSize(imgui.ImVec2_Float(500,400))
+        imgui.SetNextWindowSize(imgui.ImVec2_Float(500,love.graphics.getHeight()-80))
         imgui.Begin("VizHelper Main", nil, imgui.love.WindowFlags("NoSavedSettings","NoResize", "NoTitleBar", "NoBorders", "NoMove", "NoBackground","NoBringToFrontOnFocus"))
             
             imgui.SetWindowPos_Vec2(imgui.ImVec2_Float(30, 50))
@@ -338,10 +337,7 @@ function love.draw()
             if connectedToViz == false then imgui.BeginDisabled() end
 
 
-            if imgui.Button("Force disconnect") then
-                GFX:disconnect()
-                connectedToViz = false
-            end
+
             
             if imgui.IsItemHovered() then
                 imgui.SetTooltip("Use only if VizHelper still thinks it's connected to Viz2.0 even when it's not")
@@ -352,6 +348,12 @@ function love.draw()
 
             
             imgui.Text("BETA - A MUCH EASIER AND CLEANER VERSION IS IN DEVELOPMENT")
+
+            imgui.SetCursorPosY(love.graphics.getHeight()-140)
+            if imgui.ImageButton("gearicon", gearIcon, imgui.ImVec2_Float(29, 25)) then
+                imgui.SetNextWindowPos(imgui.ImVec2_Float(200,220))
+                Settings.show()
+            end
         imgui.End()
 
         if showTileCon[0] == true then
@@ -496,6 +498,9 @@ function love.draw()
             end
         end
 
+        if Settings.shouldShow[0] == true then
+            Settings.draw()
+        end
 
 
 
