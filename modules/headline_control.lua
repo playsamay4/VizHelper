@@ -15,21 +15,13 @@ headlineControl.shitViz = ffi.new("bool[1]", false)
 
 headlineControl.draw = function()
     imgui.Begin("Headline Control", headlineControl.shouldShow, imgui.love.WindowFlags("NoSavedSettings", "NoResize"))
-        imgui.SetWindowSize_Vec2(imgui.ImVec2_Float(800,400))
-        
-        imgui.Text("Control headline straps")
-
-        --Drop down
-        imgui.Separator()
-        imgui.Separator()
+        imgui.SetWindowSize_Vec2(imgui.ImVec2_Float(800,350))
 
         imgui.PushFont(TimingsFont)
         imgui.Text("Headline Strap")
         imgui.PopFont()
-        imgui.Text("Text to appear on the top line") imgui.SameLine()
-        imgui.InputText("###headlineStrap1", headlineControl.headlineStrap1, 1024)
-        imgui.Text("Text to appear on the bottom line, leave empty for single line strap") imgui.SameLine()
-        imgui.InputText("###headlineStrap2", headlineControl.headlineStrap2, 1024)
+        imgui.InputTextWithHint("###headlineStrap1","Text to appear on the top line", headlineControl.headlineStrap1, 1024)
+        imgui.InputTextWithHint("###headlineStrap2", "Text to appear on the bottom line, leave empty for single line strap", headlineControl.headlineStrap2, 1024)
 
         imgui.Text("Coming Up badge") imgui.SameLine()
         imgui.Checkbox("###headlineStrapComing", headlineControl.headlineStrapComingUp)
@@ -45,7 +37,9 @@ headlineControl.draw = function()
         imgui.Text("(one line straps only)")
 
 
-        if imgui.Button("Show Strap") then
+
+        imgui.SetCursorPosY(300)
+        if imgui.Button("Show Strap", imgui.ImVec2_Float(400,40)) then
             local style = ""
             if headlineControl.headlineStrapComingUp[0] == true then
                 style = style.."ComingUp"
@@ -64,13 +58,9 @@ headlineControl.draw = function()
 
         imgui.SameLine()
 
-        if imgui.Button("Hide Strap") then
+        if imgui.Button("Hide Strap",imgui.ImVec2_Float(400,40) ) then
             GFX:send("headline", {Type = "Hide-Headline", Regional = headlineControl.shitViz[0]})
         end
-
-        imgui.Separator()
-        imgui.Separator()
-
         
     imgui.End()
 end

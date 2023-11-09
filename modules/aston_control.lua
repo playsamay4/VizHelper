@@ -70,18 +70,10 @@ end
 
 astonControl.draw = function()
     imgui.Begin("Aston Control", astonControl.shouldShow, imgui.love.WindowFlags("NoSavedSettings","NoResize"))
-        imgui.SetWindowSize_Vec2(imgui.ImVec2_Float(800,400))
+        imgui.SetWindowSize_Vec2(imgui.ImVec2_Float(800,450))
         imgui.PushFont(TitleFont)
         imgui.PopFont()
-        imgui.Separator()
-        
-        if imgui.Button("Show News Bar") then
-            GFX:send("headline", {Type = "ShowLowerThird"})
-        end
-        imgui.SameLine()
-        if imgui.Button("Hide News Bar") then
-            GFX:send("headline", {Type = "HideLowerThird"})
-        end
+
 
         imgui.Separator()
 
@@ -90,16 +82,10 @@ astonControl.draw = function()
                 imgui.PushFont(TimingsFont)
                 imgui.Text("Text Strap")
                 imgui.PopFont()
-                imgui.Text("Top line text:") imgui.SameLine()
-                imgui.InputText("###lowerThirdText", astonControl.lowerThirdText, 1024)
-                imgui.Text("Bottom line text (1/2) Leave blank for a single line strap:") imgui.SameLine()
-                imgui.InputText("###lowerThirdText2", astonControl.lowerThirdText2, 1024)
-                imgui.Text("Bottom line (2/2) Leave blank if you don't want it to scroll:") imgui.SameLine()
-                imgui.InputText("###lowerThirdText3", astonControl.lowerThirdText3, 1024)
-
-                imgui.Text("Text to appear next to logo (Ex. IN BRIEF) leave blank for none")
-                imgui.SameLine()
-                imgui.InputText("###lowerThirdText4", astonControl.lowerThirdText4, 1024)
+                imgui.InputTextWithHint("###lowerThirdTopLineText", "Top line text", astonControl.lowerThirdText, 1024)
+                imgui.InputTextWithHint("###lowerThirdBottomLineText1", "Bottom line text (1/2) Leave blank for a single line strap" ,astonControl.lowerThirdText2, 1024)
+                imgui.InputTextWithHint("###lowerThirdBottomLineText2", "Bottom line (2/2) Leave blank if you don't want it to scroll", astonControl.lowerThirdText3, 1024)
+                imgui.InputTextWithHint("###lowerThirdTextBadgeText", "Text to appear next to logo (Ex. IN BRIEF) leave blank for none" , astonControl.lowerThirdText4, 1024)
 
                 if imgui.Button("Show/Update Strap") then
                     if ffi.string(astonControl.lowerThirdText) == "" then
@@ -125,22 +111,11 @@ astonControl.draw = function()
                 imgui.Text("Breaking Strap")
                 imgui.PopFont()
 
-                imgui.Text("Title of breaking news story (Appears after BREAKING)") imgui.SameLine()
-                imgui.InputText("###lowerThirdText5", astonControl.breakingTitle, 1024)
-                imgui.Text("Text to appear on the top line") imgui.SameLine()
-                imgui.InputText("###lowerThirdText6", astonControl.breakingText, 1024)
-                imgui.Text("Text to appear on the bottom line (1/2)") imgui.SameLine()
-                imgui.InputText("###lowerThirdText7", astonControl.breakingText1, 1024)
-                imgui.Text("Bottom line (2/2) Type NOP if you dont want it to scroll") imgui.SameLine()
-                imgui.InputText("###lowerThirdText8", astonControl.breakingText2, 1024)
-
-                imgui.Separator()
-                imgui.PushFont(TitleFont)
-                imgui.Text("---- IMPORTANT ----")
-                imgui.Text("Needs to appear in order: Show Breaking -> Scroll Breaking (However many times you want) -> Show/Update Strap")
-                imgui.Text("Breaking the flow will mess the strap up and you may have to restart Viz2.0")
-                imgui.Text("Updating the strap doesn't need to follow the flow, just press update")
-                imgui.PopFont()
+                
+                imgui.InputTextWithHint("###breakingTitle", "Title of breaking news story (Appears after BREAKING)", astonControl.breakingTitle, 1024)
+                imgui.InputTextWithHint("###breakingTopLine", "Text to appear on the top line", astonControl.breakingText, 1024)
+                imgui.InputTextWithHint("###breakingBottomLine1", "Text to appear on the bottom line (1/2)", astonControl.breakingText1, 1024)
+                imgui.InputTextWithHint("###breakingBottomLine2", "Bottom line (2/2) Type NOP if you dont want it to scroll", astonControl.breakingText2, 1024)
 
                 if imgui.Button("Show BREAKING") then
                     if ffi.string(astonControl.breakingTitle) == "" then
@@ -241,11 +216,8 @@ astonControl.draw = function()
                 imgui.Text("Name Strap")
                 imgui.PopFont()
                 
-                
-                imgui.Text("Text to appear on the top line") imgui.SameLine()
-                imgui.InputText("##nameStrap1", astonControl.nameStrapText1, 1024)
-                imgui.Text("Text to appear on the bottom line, leave empty for top only") imgui.SameLine()
-                imgui.InputText("##nameStrap2", astonControl.nameStrapText2, 1024)
+                imgui.InputTextWithHint("##nameStrap1", "Text to appear on the top line", astonControl.nameStrapText1, 1024)
+                imgui.InputTextWithHint("##nameStrap2", "Text to appear on the bottom line, leave empty for top only",  astonControl.nameStrapText2, 1024)
 
                 if imgui.Button("Show Name Strap") then
                     if ffi.string(astonControl.nameStrapText1) == "" then
@@ -279,18 +251,13 @@ astonControl.draw = function()
                 imgui.InputText("###lowerThirdBadgeText",astonControl.badgeText, 1024)
 
                 imgui.Text("Background Colour") imgui.SameLine()
-                if imgui.ColorEdit3("###lowerThirdBadgeBGColor",astonControl.badgeBGColor, imgui.love.ColorEditFlags("None")) then
-                
-                end
+                imgui.ColorEdit3("###lowerThirdBadgeBGColor",astonControl.badgeBGColor, imgui.love.ColorEditFlags("None"))
 
                 imgui.Text("Text Colour") imgui.SameLine()
-                if imgui.ColorEdit3("###lowerThirdBadgeTextColor",astonControl.badgeTextColor, imgui.love.ColorEditFlags("None")) then
-                    
-                end
+                imgui.ColorEdit3("###lowerThirdBadgeTextColor",astonControl.badgeTextColor, imgui.love.ColorEditFlags("None"))
                 
                 if imgui.Button("Set Badge") then
-                    GFX:send("headline", {Type = "Set-ProgramBadge", Text = ffi.string(astonControl.badgeText), TextColor = convertTableToCondensedString({astonControl.badgeTextColor[0], astonControl.badgeTextColor[1], astonControl.badgeTextColor[2]}), BackgroundColor = convertTableToCondensedString({astonControl.badgeBGColor[0], astonControl.badgeBGColor[1], astonControl.badgeBGColor[2]})})
-                    
+                    GFX:send("headline", {Type = "Set-ProgramBadge", Text = ffi.string(astonControl.badgeText), TextColor = convertTableToCondensedString({astonControl.badgeTextColor[0], astonControl.badgeTextColor[1], astonControl.badgeTextColor[2]}), BackgroundColor = convertTableToCondensedString({astonControl.badgeBGColor[0], astonControl.badgeBGColor[1], astonControl.badgeBGColor[2]})})    
                 end
 
                 imgui.SameLine()
@@ -334,8 +301,6 @@ astonControl.draw = function()
                             astonControl.badgeBGColor[0] = v.bcolor[1]
                             astonControl.badgeBGColor[1] = v.bcolor[2]
                             astonControl.badgeBGColor[2] = v.bcolor[3]
-                            
-
                         end
                         imgui.SameLine()
                         imgui.PushStyleColor_Vec4(imgui.ImGuiCol_ChildBg, imgui.ImVec4_Float(v.bcolor[1], v.bcolor[2], v.bcolor[3], 1))
@@ -404,6 +369,17 @@ astonControl.draw = function()
             end
 
             imgui.EndTabBar()
+        end
+
+        imgui.Separator()
+        
+        imgui.SetCursorPosY(400)
+        if imgui.Button("Show News Bar", imgui.ImVec2_Float(400,40)) then
+            GFX:send("headline", {Type = "ShowLowerThird"})
+        end
+        imgui.SameLine()
+        if imgui.Button("Hide News Bar", imgui.ImVec2_Float(380,40)) then
+            GFX:send("headline", {Type = "HideLowerThird"})
         end
 
     imgui.End()

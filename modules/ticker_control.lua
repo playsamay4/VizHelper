@@ -59,17 +59,27 @@ tickerControl.draw = function()
 
         if tickerControl.tickerUsingRSS[0] == false then
             imgui.Separator()
-            imgui.PushFont(TitleFont)
-            imgui.Text("--- Ticker Guide ---")
-            imgui.Text("Use this guide to learn how the ticker is filled")
-            imgui.Text("To add the HEADLINES text, type !hh")
-            imgui.Text("To add a headline, type !h followed by the headline text (ex. !h Lorem ipsum dolor sit amet)")
-            imgui.Text("To add the BREAKING text, type !bb")
-            imgui.Text("To add a breaking story, type !b followed by the story text (ex. !b Lorem ipsum dolor sit amet)")
-            imgui.Text("To add the INTERACTIVE text, type !ii")
-            imgui.Text("To add the text for it, type !i followed by the text (ex. !i Follow us XXXX)")
-            imgui.Text("A better system is coming i just made this in like 5 mins ")
-            imgui.PopFont()
+            
+            if imgui.Button("How do i use the ticker?") then
+                imgui.OpenPopup_Str("tickerHowTo")
+            end
+
+            if imgui.BeginPopup("tickerHowTo", imgui.WindowFlags_AlwaysAutoResize) then
+                imgui.PushFont(TitleFont)
+                imgui.Text("--- Ticker Guide ---")
+                imgui.Text("Use this guide to learn how the ticker is filled")
+                imgui.Text("To add the HEADLINES text, type !hh")
+                imgui.Text("To add a headline, type !h followed by the headline text (ex. !h Lorem ipsum dolor sit amet)")
+                imgui.Text("To add the BREAKING text, type !bb")
+                imgui.Text("To add a breaking story, type !b followed by the story text (ex. !b Lorem ipsum dolor sit amet)")
+                imgui.Text("To add the INTERACTIVE text, type !ii")
+                imgui.Text("To add the text for it, type !i followed by the text (ex. !i Follow us XXXX)")
+                imgui.Text("A better system is coming i just made this in like 5 mins ")
+                imgui.PopFont()
+
+                imgui.EndPopup()
+            end
+
             imgui.Separator()
 
             imgui.InputTextMultiline("###tickerText", tickerControl.tickerText,6553, imgui.ImVec2_Float(800,200), imgui.love.InputTextFlags("None"))
