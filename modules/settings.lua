@@ -8,9 +8,7 @@ local function SaveSettings(new)
     if new == true then
         settings.data = {
             Connections = {
-                {
-                    IP = "localhost",
-                }
+                IP = "localhost",
             }
         }
     end
@@ -52,7 +50,7 @@ function LoadSettings()
         settings.data = json:decode(settings.data)
     end
 
-    windowItems.conIpInput = ffi.new("char[1024]", settings.data.Connections[1].IP)
+    windowItems.conIpInput = ffi.new("char[1024]", settings.data.Connections.IP)
 
 end
 
@@ -60,19 +58,31 @@ LoadSettings()
 
 local function connectionsWindow()
     imgui.Text("IP Address: ") imgui.SameLine()
-    if imgui.InputText("###conIpInput", windowItems.conIpInput, 1024,  imgui.love.InputTextFlags("EnterReturnsTrue")) == true then
+    if imgui.InputText("###conIpInput", windowItems.conIpInput, 1024) == true then
          --disconnect from current connection
          GFX:send("disconnect")
          GFX:disconnect()
-         settings.data.Connections[1].IP = ffi.string(windowItems.conIpInput)
+         settings.data.Connections.IP = ffi.string(windowItems.conIpInput)
          SaveSettings()
     end
 
     imgui.SameLine()
+
+     
+    if connectedToViz == false then imgui.BeginDisabled() end
+    
     if imgui.Button("Force disconnect") then
-         GFX:disconnect()
-         connectedToViz = false
-     end
+        GFX:disconnect()
+        connectedToViz = false
+    end
+
+     if imgui.IsItemHovered() then
+        imgui.SetTooltip("Use only if VizHelper still thinks it's connected to Viz2.0 even when it's not")
+    end
+    if connectedToViz == false then imgui.EndDisabled() end
+
+
+
 
      imgui.SameLine()
 end

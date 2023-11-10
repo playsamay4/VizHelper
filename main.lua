@@ -24,7 +24,8 @@ ffi = require "ffi"
 local extension = jit.os == "Windows" and "dll" or jit.os == "Linux" and "so" or jit.os == "OSX" and "dylib"
 local timer = require "lib.timer"
 local dllExists = love.filesystem.read("libraries/cimgui.dll")
-local sock = require "lib.sock"
+sock = require "lib.sock"
+Inspect = require "lib.inspect"
 
 local showDebug = false
 
@@ -73,13 +74,6 @@ local automationList = {
     }}
 }
 
-local gearIcon = love.graphics.newImage("assets/gear.png")
-
-Settings = require "modules.settings"
-
-GFX = sock.newClient(Settings.data.ip, 10655)
-GFX:connect()
-
 local connectedToViz = false
 
 showError = false
@@ -87,26 +81,45 @@ errorTitle = ""
 errorMessage = ""
 
 
-GFX:on("connect", function(data)
-    GFX:send("headline", {Type = "GetTickerText", Text = ffi.string(TickerControl.tickerText), DefaultText = ffi.string(TickerControl.defaultTickerText)})
-    connectedToViz = true
+local gearIcon = love.graphics.newImage("assets/gear.png")
 
-    --This breaks figure out why \/\/\/
+Settings = require "modules.settings"
 
-    -- local sendData = {Type = "Set-Branding"}
-    -- sendData.channelName = brandingPresets[brandingPresetSelected].channelName
-    -- sendData.opaque = brandingPresets[brandingPresetSelected].opaque
-    -- sendData.coloredStrap = brandingPresets[brandingPresetSelected].coloredStrap
-    -- sendData.ThemeColor = brandingPresets[brandingPresetSelected].themeColor
-    -- sendData.mode = brandingPresets[brandingPresetSelected].mode
-    -- sendData.clockMode = brandingPresets[brandingPresetSelected].clockMode
-    -- GFX:send("headline", sendData)  
+GFX = sock.newClient(Settings.data.Connections.IP or "localhost", 10655)
+local connectSuccess, connectError = pcall(function() GFX:connect() end)
 
-end)
+if connectSuccess == false then
+    --temporarily set GFX to a dummy object so it doesn't error
+    GFX = {error = true, on = function() end, send = function() end, update = function() end, disconnect = function() end, connect = function() end}
+    showError = true
+    errorTitle = "Connection Error"
+    errorMessage = "Couldn't connect to Viz2.0: \n"..connectError
+end
 
-GFX:on("disconnect", function(data)
-    connectedToViz = false
-end)
+
+function registerCallbacks()
+    GFX:on("connect", function(data)
+        GFX:send("headline", {Type = "GetTickerText", Text = ffi.string(TickerControl.tickerText), DefaultText = ffi.string(TickerControl.defaultTickerText)})
+        connectedToViz = true
+
+        --This breaks figure out why \/\/\/
+
+        -- local sendData = {Type = "Set-Branding"}
+        -- sendData.channelName = brandingPresets[brandingPresetSelected].channelName
+        -- sendData.opaque = brandingPresets[brandingPresetSelected].opaque
+        -- sendData.coloredStrap = brandingPresets[brandingPresetSelected].coloredStrap
+        -- sendData.ThemeColor = brandingPresets[brandingPresetSelected].themeColor
+        -- sendData.mode = brandingPresets[brandingPresetSelected].mode
+        -- sendData.clockMode = brandingPresets[brandingPresetSelected].clockMode
+        -- GFX:send("headline", sendData)  
+
+    end)
+
+    GFX:on("disconnect", function(data)
+        connectedToViz = false
+    end)
+end
+registerCallbacks()
 
 function love.load()
     imgui.love.Init() -- or imgui.love.Init("RGBA32") or imgui.love.Init("Alpha8")
@@ -325,7 +338,21 @@ function love.draw()
             end
             if imgui.Button(text) then
                 if connectedToViz == false then
-                    GFX:connect()
+
+                    GFX = sock.newClient(Settings.data.Connections.IP, 10655)
+            
+                    local connectSuccess, connectError = pcall(function() GFX:connect() end)
+
+                    if connectSuccess == false then
+                        --temporarily set GFX to a dummy object so it doesn't error
+                        GFX = {error = true, on = function() end, send = function() end, update = function() end, disconnect = function() end, connect = function() end}
+                        showError = true
+                        errorTitle = "Connection Error"
+                        errorMessage = "Couldn't connect to Viz2.0: \n"..connectError
+                    end
+
+                    registerCallbacks()
+
                 else
                     GFX:disconnect()
                 end
@@ -333,17 +360,7 @@ function love.draw()
             imgui.PopStyleColor()
 
             imgui.SameLine()
-            
-            if connectedToViz == false then imgui.BeginDisabled() end
-
-
-
-            
-            if imgui.IsItemHovered() then
-                imgui.SetTooltip("Use only if VizHelper still thinks it's connected to Viz2.0 even when it's not")
-            end
-            if connectedToViz == false then imgui.EndDisabled() end
-
+           
             imgui.Separator()
 
             
