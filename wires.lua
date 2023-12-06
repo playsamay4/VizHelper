@@ -47,6 +47,7 @@ local BBCUKSCR = [[
     
         parser:parse(wireGatherData)
         --if i == 1 then print(inspect(handler)) end
+          if handler.root.rss == nil then return end
         local wireGatherTable = handler.root.rss.channel.item
         local wireData = handler.root.rss.channel
         
