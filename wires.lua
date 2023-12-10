@@ -11,7 +11,7 @@ local BBCWorldSCR = [[
     local socket = require("socket.http")
     local parser = xml2lua.parser(handler)
      local wireGatherData = ""
-    local wireGatherURLS = {"http://feeds.bbci.co.uk/news/world/rss.xml"}
+    local wireGatherURLS = {"https://rss.playsamay4.com/bbcworld"}
     local inspect = require "lib.inspect"
 
     for i = 1, #wireGatherURLS do
@@ -37,7 +37,7 @@ local BBCUKSCR = [[
     local socket = require("socket.http")
     local parser = xml2lua.parser(handler)
      local wireGatherData = ""
-    local wireGatherURLS = {"http://feeds.bbci.co.uk/news/uk/rss.xml"}
+    local wireGatherURLS = {"https://rss.playsamay4.com/bbcuk"}
     local inspect = require "lib.inspect"
 
     for i = 1, #wireGatherURLS do
