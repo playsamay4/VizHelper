@@ -2,6 +2,10 @@
 
 Rewrite of VizHelper using [imgui_bundle](https://github.com/pthom/imgui_bundle)
 
+## Building
+
+Build with cmake using the CMakeLists.txt
+
 ## Installation
 
 Go to releases and download the latest version.
