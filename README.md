@@ -1,10 +1,11 @@
-# VizHelper
+# VizHelper (imgui_bundle)
+
+Rewrite of VizHelper using [imgui_bundle](https://github.com/pthom/imgui_bundle)
 
 ## Installation
 
 Go to releases and download the latest version.
-Windows only (but ill try to get it working on Mac/Linux) otherwise use Wine.
-If it crashes with a missing dll error, install the latest [Visual C++ Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)
+Alternatively you can use the web version here: TODO
 
 ## Usage
 
